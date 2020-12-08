@@ -1,0 +1,77 @@
+# \filename SnapcheckSpotify.py
+# 
+# \author Kaan Salt
+
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+
+client_id = 'your client id' #Don't want to to put out this information feel free to enter yours
+client_secret = 'your client secret' #Don't want to to put out this information feel free to enter yours
+
+client_credentials_manager = SpotifyClientCredentials(client_id, client_secret)
+sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+# Queries Spotify for the playlist and returns all tracks/songs in the playlist.
+def GetPlaylistSongs(user, playlistId):
+    songs = []
+    playlist = sp.user_playlist(user, playlistId)
+    for item in playlist['tracks']['items']:
+        track = item['track']
+        songs.append(track['name'])
+    return songs
+
+# Query Spotify and grab a list of album names for the given artist.
+def GetArtistAlbums(artistUri):
+    artistAlbums = []
+    results = sp.artist_albums(artistUri, album_type='album')
+    albums = results['items']
+    while results['next']:
+        results = sp.next(results)
+        albums.extend(results['items'])
+
+    for album in albums:
+        artistAlbums.append(album['name'])
+    return artistAlbums
+
+# Obtain the top 10 songs for the given artist
+def GetArtistTopSongs(artistUri):
+    artistTops = []
+    artistSongs = sp.artist_top_tracks(artistUri)
+    for track in artistSongs['tracks'][:10]:
+        artistTops.append(track['name'])
+    return artistTops
+
+
+
+
+
+print ('Directions for finding artist URI:')
+print ('-Go to Spotify desktop app, choose any artist and go to their page')
+print ('-Click on the three dots  and select Share>Copy Spotify URI')
+print ('-Paste the URI into the output window')
+print ('Artist URI:')
+artistUri = input()
+albums = GetArtistAlbums(artistUri)
+tops = GetArtistTopSongs(artistUri)
+
+print ('\n Top 10 songs for selected artist: \n')
+print (tops)
+
+print ('\n All albums for selected artist: \n')
+print (albums)
+
+print ('\n List of songs for a playlist I made named B.F.D: \n')
+# change user and playlistId for own playlist (currently my playlist info is displayed)
+songs = GetPlaylistSongs('11136681509', '2y7a6nseUesy1UoEz3eWS6')
+print (songs)
+
+print ('\n Top songs from selected artist in my playlist: \n')
+counter = 0
+for t in tops:
+    for s in songs:
+        if t == s:
+            print(t)
+            counter+=1
+
+if (counter == 0):
+    print ('There is no matching songs')
